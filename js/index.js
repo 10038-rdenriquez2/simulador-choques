@@ -131,8 +131,6 @@ const alturaCarrito = 50;
 let velocidadBase = 1; // Ajuste de velocidad para la animación
 let animationId; // Variable para almacenar el ID de la animación
 let choque = false; // Bandera para controlar si ya ocurrió un choque
-let compresionResorte = 0; // Nivel de compresión del resorte
-const maxCompresion = 20; // Máxima compresión del resorte
 
 function actualizarDatos() {
     masa1 = parseFloat(document.getElementById('masa1').value);
@@ -167,18 +165,16 @@ function dibujarCarrito(x, y, color) {
     ctx.fill();
 }
 
-function dibujarResorte(x, y) {
+function dibujarResorte(x, y, comprimido = false) {
     ctx.strokeStyle = 'white'; // Color del resorte
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(x + anchoCarrito, y + alturaCarrito / 2);
 
-    // Dibujar resorte con compresión
+    const factorCompresion = comprimido ? 2.5 : 5; // Modifica este valor para ajustar la compresión
     for (let i = 0; i < 7; i++) {
-        let offset = (i % 2 === 0 ? -5 : 5) * (1 - compresionResorte / maxCompresion);
-        ctx.lineTo(x + anchoCarrito + i * 5, y + alturaCarrito / 2 + offset);
+        ctx.lineTo(x + anchoCarrito + i * factorCompresion, y + alturaCarrito / 2 + (i % 2 === 0 ? -5 : 5));
     }
-
     ctx.stroke();
 }
 
@@ -220,14 +216,6 @@ function comprobarChoque(v1Final, v2Final) {
             velocidadBase = 0.3;
         }
 
-        // Compresión del resorte
-        compresionResorte = maxCompresion;
-
-        // Temporizador para descomprimir el resorte
-        setTimeout(() => {
-            compresionResorte = 0; // Restablecer compresión después de un tiempo
-        }, 100); // Ajusta el tiempo de compresión a tu preferencia
-
         // Reiniciar las posiciones para continuar con la animación post-choque
         x1 += velocidad1 * velocidadBase;
         x2 += velocidad2 * velocidadBase;
@@ -237,6 +225,10 @@ function comprobarChoque(v1Final, v2Final) {
 function moverCarritos(v1Final, v2Final) {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
 
+    // Dibujar la "calle"
+    ctx.fillStyle = 'green';
+    ctx.fillRect(0, y + alturaCarrito, canvas.width, 10);
+
     // Determinar el tipo de choque
     const esChoqueElastico = choqueElastico;
 
@@ -245,7 +237,7 @@ function moverCarritos(v1Final, v2Final) {
     dibujarCarrito(x2, y, 'blue'); // Carrito 2 (azul)
 
     if (esChoqueElastico) {
-        dibujarResorte(x1, y);
+        dibujarResorte(x1, y, choque); // Comprimir resorte si ocurrió el choque
     } else {
         dibujarGancho(x1, y, 'derecha'); // Gancho en el carrito 1
         dibujarGancho(x2, y, 'izquierda'); // Gancho en el carrito 2
@@ -270,7 +262,7 @@ function moverCarritos(v1Final, v2Final) {
 function iniciarSimulacion(v1Final, v2Final) {
     actualizarDatos();
     x1 = 0; // Posición inicial del carrito 1
-    x2 = canvas.width / 3; // Posición inicial del carrito 2
+    x2 = canvas.width / 2; // Posición inicial del carrito 2
     choque = false; // Reiniciar la bandera de choque
     velocidadBase = 1; // Resetear velocidad base
 
@@ -284,11 +276,15 @@ function detenerSimulacion() {
 function resetearSimulacion() {
     detenerSimulacion();
     x1 = 0;
-    x2 = canvas.width / 3;
+    x2 = canvas.width / 2;
     choque = false;
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
     dibujarCarrito(x1, y, 'red'); // Carrito 1 (rojo)
     dibujarCarrito(x2, y, 'blue'); // Carrito 2 (azul)
+
+    // Dibujar la "calle"
+    ctx.fillStyle = 'green';
+    ctx.fillRect(0, y + alturaCarrito, canvas.width, 10);
 }
 
 
